@@ -19,11 +19,18 @@ class Application(models.Model):
     """
     Model for job applications.
     """
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    )
+
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='my_applications')
     resume = models.FileField(upload_to='resumes/') # Files will be saved in media/resumes/
     cover_letter = models.TextField()
     applied_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 
     class Meta:
         # Ensure an applicant can only apply once to a specific job

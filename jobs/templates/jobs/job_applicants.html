@@ -18,6 +18,58 @@
                     <p><strong>Applied On:</strong> {{ application.applied_at|date:"M d, Y H:i" }}</p>
                     <p><strong>Cover Letter:</strong> {{ application.cover_letter|linebreaksbr }}</p>
                     <p><strong>Resume:</strong> <a href="{{ application.resume.url }}" target="_blank">Download Resume</a></p>
+                    
+                    <!-- Display current status with color -->
+                    <p>
+                        <strong>Status:</strong> 
+                        {% if application.status == 'Approved' %}
+                            <span style="font-weight: bold; color: green;">
+                                {{ application.status }}
+                            </span>
+                        {% endif %}
+                        {% if application.status == 'Rejected' %}
+                            <span style="font-weight: bold; color: red;">
+                                {{ application.status }}
+                            </span>
+                        {% endif %}
+                        {% if application.status == 'Pending' %}
+                            <span style="font-weight: bold; color: gray;">
+                                {{ application.status }}
+                            </span>
+                        {% endif %}
+                    </p>
+
+                    {# Approve/Reject buttons #}
+                    <div style="margin-top: 10px;">
+                        {% if application.status == 'Pending' %}
+                            <form method="post" action="{% url 'job_applicants' job.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="application_id" value="{{ application.id }}">
+                                <input type="hidden" name="status" value="Approved">
+                                <button type="submit" class="button-link" style="background-color: green;">Approve</button>
+                            </form>
+                            <form method="post" action="{% url 'job_applicants' job.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="application_id" value="{{ application.id }}">
+                                <input type="hidden" name="status" value="Rejected">
+                                <button type="submit" class="button-link" style="background-color: red;">Reject</button>
+                            </form>
+                        {% elif application.status == 'Approved' %}
+                             <form method="post" action="{% url 'job_applicants' job.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="application_id" value="{{ application.id }}">
+                                <input type="hidden" name="status" value="Rejected">
+                                <button type="submit" class="button-link" style="background-color: red;">Reject</button>
+                            </form>
+                        {% elif application.status == 'Rejected' %}
+                             <form method="post" action="{% url 'job_applicants' job.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="application_id" value="{{ application.id }}">
+                                <input type="hidden" name="status" value="Approved">
+                                <button type="submit" class="button-link" style="background-color: green;">Approve</button>
+                            </form>
+                        {% endif %}
+                    </div>
                 </li>
             {% endfor %}
         </ul>

@@ -33,20 +33,14 @@ class ApplicationForm(ModelForm):
 # --- Employer Functionalities ---
 
 @login_required
-@user_passes_test(is_employer, login_url='login') # Redirect to login if not employer
+@user_passes_test(is_employer, login_url='login')
 def employer_dashboard(request):
-    """
-    Displays jobs posted by the current employer.
-    """
     jobs = Job.objects.filter(posted_by=request.user).order_by('-created_at')
     return render(request, 'jobs/employer_dashboard.html', {'jobs': jobs})
 
 @login_required
 @user_passes_test(is_employer, login_url='login')
 def post_job(request):
-    """
-    Allows an employer to post a new job.
-    """
     if request.method == 'POST':
         form = JobForm(request.POST)
         if form.is_valid():
@@ -63,10 +57,26 @@ def post_job(request):
 @user_passes_test(is_employer, login_url='login')
 def job_applicants(request, job_id):
     """
-    Displays a list of applicants for a specific job posted by the current employer.
+    Displays a list of applicants for a specific job and handles status updates.
     """
-    job = get_object_or_404(Job, id=job_id, posted_by=request.user) # Ensure only their jobs
-    applications = job.applications.all().select_related('applicant').order_by('-applied_at') # Optimize with select_related
+    job = get_object_or_404(Job, id=job_id, posted_by=request.user)
+
+    if request.method == 'POST':
+        application_id = request.POST.get('application_id')
+        new_status = request.POST.get('status')
+        try:
+            application = job.applications.get(id=application_id)
+            if new_status in ['Approved', 'Rejected']:
+                application.status = new_status
+                application.save()
+                messages.success(request, f"Application for {application.applicant.username} has been {new_status.lower()}.")
+            else:
+                messages.error(request, "Invalid status update.")
+        except Application.DoesNotExist:
+            messages.error(request, "Application not found.")
+        return redirect('job_applicants', job_id=job.id)
+
+    applications = job.applications.all().select_related('applicant').order_by('-applied_at')
     return render(request, 'jobs/job_applicants.html', {'job': job, 'applications': applications})
 
 # --- Applicant Functionalities ---
@@ -75,33 +85,33 @@ def job_applicants(request, job_id):
 @user_passes_test(is_applicant, login_url='login')
 def applicant_dashboard(request):
     """
-    Displays jobs the current applicant has applied for.
+    Displays applications submitted by the current applicant, with filtering by status.
     """
-    applications = Application.objects.filter(applicant=request.user).select_related('job').order_by('-applied_at')
-    return render(request, 'jobs/applicant_dashboard.html', {'applications': applications})
+    status_filter = request.GET.get('status', 'All') # Default to 'All'
+    applications = Application.objects.filter(applicant=request.user).select_related('job')
 
-@login_required # Jobs can be viewed by anyone logged in, but apply only by applicant
+    if status_filter != 'All' and status_filter in [c[0] for c in Application.STATUS_CHOICES]:
+        applications = applications.filter(status=status_filter)
+
+    applications = applications.order_by('-applied_at')
+    
+    return render(request, 'jobs/applicant_dashboard.html', {'applications': applications, 'status_filter': status_filter})
+
+@login_required
 def job_list(request):
-    """
-    Displays a list of all available jobs with search functionality.
-    """
     jobs = Job.objects.all().order_by('-created_at')
-    query = request.GET.get('q') # Get the search query from the URL parameter 'q'
+    query = request.GET.get('q')
 
     if query:
         jobs = jobs.filter(
-            Q(title__icontains=query) |        # Case-insensitive contains for title
-            Q(company_name__icontains=query) | # Case-insensitive contains for company_name
-            Q(location__icontains=query)       # Case-insensitive contains for location
-        ).distinct() # Use .distinct() to avoid duplicate results if a job matches multiple criteria
+            Q(title__icontains=query) |
+            Q(company_name__icontains=query) |
+            Q(location__icontains=query)
+        ).distinct()
     return render(request, 'jobs/job_list.html', {'jobs': jobs, 'query': query})
 
 @login_required
 def job_detail(request, job_id):
-    """
-    Displays details of a specific job.
-    Also checks if the current user (if applicant) has already applied.
-    """
     job = get_object_or_404(Job, id=job_id)
     has_applied = False
     if request.user.is_authenticated and request.user.is_applicant():
@@ -111,12 +121,8 @@ def job_detail(request, job_id):
 @login_required
 @user_passes_test(is_applicant, login_url='login')
 def apply_job(request, job_id):
-    """
-    Allows an applicant to apply for a job.
-    """
     job = get_object_or_404(Job, id=job_id)
 
-    # Prevent multiple applications for the same job by the same applicant
     if Application.objects.filter(job=job, applicant=request.user).exists():
         messages.warning(request, "You have already applied for this job.")
         return redirect('job_detail', job_id=job.id)

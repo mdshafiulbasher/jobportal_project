@@ -6,6 +6,14 @@
     <h1>Applicant Dashboard</h1>
     <h2>Your Submitted Applications</h2>
 
+    {# Status Filter Buttons #}
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'applicant_dashboard' %}" class="button-link {% if status_filter == 'All' %}active{% endif %}">All</a>
+        <a href="{% url 'applicant_dashboard' %}?status=Pending" class="button-link {% if status_filter == 'Pending' %}active{% endif %}" style="background-color: gray;">Pending</a>
+        <a href="{% url 'applicant_dashboard' %}?status=Approved" class="button-link {% if status_filter == 'Approved' %}active{% endif %}" style="background-color: green;">Approved</a>
+        <a href="{% url 'applicant_dashboard' %}?status=Rejected" class="button-link {% if status_filter == 'Rejected' %}active{% endif %}" style="background-color: red;">Rejected</a>
+    </div>
+
     {% if applications %}
         {% for application in applications %}
             <div class="application-card">
@@ -15,10 +23,30 @@
                 <p><strong>Applied On:</strong> {{ application.applied_at|date:"M d, Y H:i" }}</p>
                 <p><strong>Your Resume:</strong> <a href="{{ application.resume.url }}" target="_blank">Download Your Resume</a></p>
                 <p><strong>Your Cover Letter:</strong> {{ application.cover_letter|linebreaksbr }}</p>
+                
+                {# Display application status with color #}
+                <p>
+                    <strong>Status:</strong> 
+                        {% if application.status == 'Approved' %}
+                            <span style="font-weight: bold; color: green;">
+                                {{ application.status }}
+                            </span>
+                        {% endif %}
+                        {% if application.status == 'Rejected' %}
+                            <span style="font-weight: bold; color: red;">
+                                {{ application.status }}
+                            </span>
+                        {% endif %}
+                        {% if application.status == 'Pending' %}
+                            <span style="font-weight: bold; color: gray;">
+                                {{ application.status }}
+                            </span>
+                        {% endif %}
+                </p>
             </div>
         {% endfor %}
     {% else %}
-        <p class="no-records">You haven't applied for any jobs yet.</p>
+        <p class="no-records">You haven't applied for any jobs yet{% if status_filter != 'All' %} with status '{{ status_filter }}'{% endif %}.</p>
         <p class="center-text"><a href="{% url 'job_list' %}" class="button-link">Browse Available Jobs</a></p>
     {% endif %}
 {% endblock %}
