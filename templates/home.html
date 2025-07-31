@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Job Portal{% endblock %}
+
+{% block content %}
+    <h1 class="center-text">Welcome to the Job Portal!</h1>
+    <p class="center-text">Your one-stop solution for finding and posting jobs.</p>
+
+    {% if user.is_authenticated %}
+        <p class="center-text">You are logged in as <strong>{{ user.username }}</strong> ({{ user.user_type|capfirst }}).</p>
+        <div class="center-text">
+            {% if user.is_employer %}
+                <p><a href="{% url 'employer_dashboard' %}" class="button-link">Go to Employer Dashboard</a></p>
+                <p><a href="{% url 'post_job' %}" class="button-link">Post a New Job</a></p>
+            {% elif user.is_applicant %}
+                <p><a href="{% url 'applicant_dashboard' %}" class="button-link">Go to Applicant Dashboard</a></p>
+                <p><a href="{% url 'job_list' %}" class="button-link">Browse Available Jobs</a></p>
+            {% endif %}
+        </div>
+    {% else %}
+        <p class="center-text">Please <a href="{% url 'login' %}">login</a> or <a href="{% url 'register_applicant' %}">register</a> to get started.</p>
+        <div class="center-text">
+            <p>Are you an employer? <a href="{% url 'register_employer' %}" class="button-link">Register as Employer</a></p>
+            <p>Looking for a job? <a href="{% url 'register_applicant' %}" class="button-link">Register as Applicant</a></p>
+        </div>
+    {% endif %}
+{% endblock %}

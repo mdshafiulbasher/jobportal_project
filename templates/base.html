@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Job Portal{% endblock %}</title>
+    <style>
+        /* Basic CSS for the layout and styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        nav {
+            background-color: #283747; /* Dark blue-grey */
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        nav a:hover {
+            color: #a0c4ff; /* Lighter blue on hover */
+            text-decoration: underline;
+        }
+        nav .brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 2rem auto;
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+        .messages li {
+            padding: 0.8rem 1.5rem;
+            margin-bottom: 0.8rem;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .messages .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .messages .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .messages .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .messages .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+        h1, h2, h3 {
+            color: #283747;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 0.6rem;
+            font-weight: 600;
+        }
+        form input[type="text"],
+        form input[type="password"],
+        form input[type="email"],
+        form textarea,
+        form input[type="file"] {
+            width: calc(100% - 20px); /* Adjust for padding */
+            padding: 0.8rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Include padding in width */
+            font-size: 1rem;
+        }
+        form button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        form button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        .job-card, .application-card {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .job-card h3 a, .application-card h3 a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .job-card h3 a:hover, .application-card h3 a:hover {
+            text-decoration: underline;
+        }
+        .job-applicants-list li {
+            background-color: #e9ecef;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            border-radius: 5px;
+            border-left: 5px solid #007bff;
+        }
+        .job-applicants-list li strong {
+            color: #283747;
+        }
+        .no-records {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin-top: 2rem;
+        }
+        .center-text {
+            text-align: center;
+        }
+        .button-link {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 0.6em 1.2em;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+        }
+        .button-link:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="brand"><a href="{% url 'home' %}">JobPortal</a></div>
+        <div>
+            {% if user.is_authenticated %}
+                {% if user.is_employer %}
+                    <a href="{% url 'employer_dashboard' %}">Employer Dashboard</a>
+                    <a href="{% url 'post_job' %}">Post Job</a>
+                {% elif user.is_applicant %}
+                    <a href="{% url 'applicant_dashboard' %}">Applicant Dashboard</a>
+                    <a href="{% url 'job_list' %}">Browse Jobs</a>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div>
+            {% if user.is_authenticated %}
+                <span>Hello, {{ user.username }}!</span>
+                <a href="{% url 'logout' %}">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register_applicant' %}">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>

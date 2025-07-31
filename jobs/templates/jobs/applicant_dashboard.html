@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Applicant Dashboard{% endblock %}
+
+{% block content %}
+    <h1>Applicant Dashboard</h1>
+    <h2>Your Submitted Applications</h2>
+
+    {% if applications %}
+        {% for application in applications %}
+            <div class="application-card">
+                <h3><a href="{% url 'job_detail' application.job.id %}">{{ application.job.title }}</a></h3>
+                <p><strong>Company:</strong> {{ application.job.company_name }}</p>
+                <p><strong>Location:</strong> {{ application.job.location }}</p>
+                <p><strong>Applied On:</strong> {{ application.applied_at|date:"M d, Y H:i" }}</p>
+                <p><strong>Your Resume:</strong> <a href="{{ application.resume.url }}" target="_blank">Download Your Resume</a></p>
+                <p><strong>Your Cover Letter:</strong> {{ application.cover_letter|linebreaksbr }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="no-records">You haven't applied for any jobs yet.</p>
+        <p class="center-text"><a href="{% url 'job_list' %}" class="button-link">Browse Available Jobs</a></p>
+    {% endif %}
+{% endblock %}

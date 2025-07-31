@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} - Job Details{% endblock %}
+
+{% block content %}
+    <h1>{{ job.title }}</h1>
+    <p><strong>Company:</strong> {{ job.company_name }}</p>
+    <p><strong>Location:</strong> {{ job.location }}</p>
+    <p><strong>Posted By:</strong> {{ job.posted_by.username }}</p>
+    <p><strong>Posted On:</strong> {{ job.created_at|date:"M d, Y" }}</p>
+
+    <h2>Job Description</h2>
+    <p>{{ job.description|linebreaksbr }}</p>
+
+    {% if user.is_applicant %}
+        {% if has_applied %}
+            <p style="color: green; font-weight: bold;">You have already applied for this job.</p>
+            <p class="center-text"><a href="{% url 'applicant_dashboard' %}" class="button-link">View Your Applications</a></p>
+        {% else %}
+            <p class="center-text"><a href="{% url 'apply_job' job.id %}" class="button-link">Apply for this Job</a></p>
+        {% endif %}
+    {% elif user.is_employer %}
+        <p class="center-text">As an employer, you cannot apply for jobs.</p>
+        {% if job.posted_by == user %}
+             <p class="center-text"><a href="{% url 'job_applicants' job.id %}" class="button-link">View Applicants for This Job</a></p>
+        {% endif %}
+    {% else %}
+        <p class="center-text">Please <a href="{% url 'login' %}">log in as an applicant</a> to apply for jobs.</p>
+    {% endif %}
+
+    <p class="center-text"><a href="{% url 'job_list' %}" class="button-link" style="margin-top: 20px;">Back to Job Listings</a></p>
+{% endblock %}

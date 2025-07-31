@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Available Job Listings{% endblock %}
+
+{% block content %}
+    <h1>Available Job Listings</h1>
+
+    <form method="GET" action="{% url 'job_list' %}" style="margin-bottom: 2rem;">
+        <input type="text" name="q" placeholder="Search by title, company, or location..." value="{{ query|default:'' }}">
+        <button type="submit">Search</button>
+    </form>
+
+    {% if jobs %}
+        {% for job in jobs %}
+            <div class="job-card">
+                <h3><a href="{% url 'job_detail' job.id %}">{{ job.title }}</a></h3>
+                <p><strong>Company:</strong> {{ job.company_name }}</p>
+                <p><strong>Location:</strong> {{ job.location }}</p>
+                <p>Posted by: {{ job.posted_by.username }} on {{ job.created_at|date:"M d, Y" }}</p>
+                <p><a href="{% url 'job_detail' job.id %}" class="button-link">View Details</a></p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="no-records">No jobs found matching your criteria.</p>
+        {% if query %}
+            <p class="center-text">Try a different search term or <a href="{% url 'job_list' %}" class="button-link">View all jobs</a>.</p>
+        {% endif %}
+    {% endif %}
+{% endblock %}

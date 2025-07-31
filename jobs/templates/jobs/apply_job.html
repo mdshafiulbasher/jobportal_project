@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply for {{ job.title }}{% endblock %}
+
+{% block content %}
+    <h1>Apply for "{{ job.title }}"</h1>
+    <p><strong>Company:</strong> {{ job.company_name }}</p>
+    <p><strong>Location:</strong> {{ job.location }}</p>
+
+    <form method="post" enctype="multipart/form-data"> {# Important: enctype for file uploads #}
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit Application</button>
+    </form>
+{% endblock %}
